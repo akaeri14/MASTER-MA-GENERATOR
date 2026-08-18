@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Modul Ajar Generator — Penyusun Modul Ajar Presisi DOCX</title>
+  <meta name="description" content="Aplikasi penyusun Modul Ajar terstruktur dengan asistensi Google Gemini AI dan Mail Merge ke template DOCX master asli.">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand-badge">
+        <div class="brand-icon">⚡</div>
+        <div>
+          <h1 class="brand-title">AI MODUL AJAR GENERATOR</h1>
+          <div class="brand-sub">
+            <span>Kurikulum Merdeka</span>
+            <span class="pill">DOCX Master Engine</span>
+          </div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button type="button" class="btn btn-secondary btn-sm" id="btn-reset-draft" title="Kosongkan form dan buat modul baru">
+          🔄 Reset Form
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Wrapper -->
+  <main class="main-wrapper">
+
+    <!-- Stepper Navigation Bar (Steps 1 - 8) -->
+    <nav class="stepper-nav">
+      <ul class="stepper-list">
+        <li class="step-item active" data-step="1">
+          <div class="step-bubble">1</div>
+          <span class="step-label">Identitas</span>
+        </li>
+        <li class="step-item" data-step="2">
+          <div class="step-bubble">2</div>
+          <span class="step-label">CP & TP</span>
+        </li>
+        <li class="step-item" data-step="3">
+          <div class="step-bubble">3</div>
+          <span class="step-label">Model</span>
+        </li>
+        <li class="step-item" data-step="4">
+          <div class="step-bubble">4</div>
+          <span class="step-label">Apersepsi</span>
+        </li>
+        <li class="step-item" data-step="5">
+          <div class="step-bubble">5</div>
+          <span class="step-label">Kegiatan</span>
+        </li>
+        <li class="step-item" data-step="6">
+          <div class="step-bubble">6</div>
+          <span class="step-label">Asesmen</span>
+        </li>
+        <li class="step-item" data-step="7">
+          <div class="step-bubble">7</div>
+          <span class="step-label">Preview</span>
+        </li>
+        <li class="step-item" data-step="8">
+          <div class="step-bubble">8</div>
+          <span class="step-label">Export DOCX</span>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- Wizard Step Panels Container -->
+    <div class="glass-panel wizard-card">
+
+      <!-- ================= STEP 1: IDENTITAS MODUL ================= -->
+      <section class="wizard-step-panel" data-step="1">
+        <div class="section-header">
+          <h2 class="section-title"><span>📋</span> STEP 1 — Identitas & Informasi Pembelajaran</h2>
+          <p class="section-subtitle">Masukkan informasi dasar modul ajar yang akan dipetakan langsung ke tabel master template.</p>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" for="input-nama-guru">
+              Nama Guru <span class="badge-tag required">Wajib</span>
+            </label>
+            <input type="text" id="input-nama-guru" class="form-input" placeholder="Contoh: Erian Sukarna Putera, S.Kom">
+            <span class="form-hint">Digunakan untuk nama file dan tanda tangan dokumen.</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="input-mata-pelajaran">
+              Mata Pelajaran <span class="badge-tag required">Wajib</span>
+            </label>
+            <input type="text" id="input-mata-pelajaran" class="form-input" placeholder="Contoh: Dasar-Dasar Kejuruan TKJ">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="input-tanggal">
+              Tanggal KBM <span class="badge-tag required">Field: «TANGGAL»</span>
+            </label>
+            <input type="text" id="input-tanggal" class="form-input" placeholder="Contoh: 18 Agustus 2026 atau [Sesuai Jadwal]">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="select-fase">
+              Fase Kurikulum <span class="badge-tag required">Field: «FASE»</span>
+            </label>
+            <select id="select-fase" class="form-select">
+              <option value="Fase F">Fase F (Kelas XI - XII SMA/SMK)</option>
+              <option value="Fase E">Fase E (Kelas X SMA/SMK)</option>
+              <option value="Fase D">Fase D (Kelas VII - IX SMP)</option>
+              <option value="Fase C">Fase C (Kelas V - VI SD)</option>
+              <option value="Fase B">Fase B (Kelas III - IV SD)</option>
+              <option value="Fase A">Fase A (Kelas I - II SD)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="input-kelas">
+              Kelas / Rombel <span class="badge-tag required">Wajib</span>
+            </label>
+            <input type="text" id="input-kelas" class="form-input" placeholder="Contoh: XI TKJ 1 / X RPL 2">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="input-jp">
+              Alokasi Waktu (JP) <span class="badge-tag required">Field: «JP»</span>
+            </label>
+            <input type="number" id="input-jp" class="form-input" placeholder="Contoh: 18" value="18" min="1" max="100">
+          </div>
+
+          <div class="form-group full-width">
+            <label class="form-label" for="input-elemen-tema">
+              Elemen / Tema <span class="badge-tag required">Field: «ELEMENTEMA»</span>
+            </label>
+            <input type="text" id="input-elemen-tema" class="form-input" placeholder="Contoh: Network Administrator / Rekayasa Perangkat Lunak">
+          </div>
+
+          <div class="form-group full-width">
+            <label class="form-label" for="input-materi">
+              Materi Utama / Pokok <span class="badge-tag required">Field: «MATERI»</span>
+            </label>
+            <input type="text" id="input-materi" class="form-input" placeholder="Contoh: Dasar Jaringan / Konfigurasi Routing Dinamis">
+          </div>
+
+          <div class="form-group full-width">
+            <label class="form-label" for="input-sub-materi">
+              Sub Materi <span class="badge-tag required">Field: «SUB_MATERI»</span>
+            </label>
+            <input type="text" id="input-sub-materi" class="form-input" placeholder="Contoh: Jenis Jaringan, Pengenalan IP Address, Konektivitas Jaringan">
+          </div>
+
+          <div class="form-group full-width">
+            <label class="form-label">
+              Metode Pembelajaran <span class="badge-tag">Field: «METODE_PENYAMPAIAN»</span>
+            </label>
+            <div class="tag-container" id="metode-tags">
+              <button type="button" class="tag-btn active" data-value="Ceramah Interaktif">Ceramah Interaktif</button>
+              <button type="button" class="tag-btn active" data-value="Diskusi Kelompok">Diskusi Kelompok</button>
+              <button type="button" class="tag-btn active" data-value="Tanya Jawab">Tanya Jawab</button>
+              <button type="button" class="tag-btn" data-value="Demonstrasi">Demonstrasi</button>
+              <button type="button" class="tag-btn" data-value="Praktikum / Eksplorasi">Praktikum / Eksplorasi</button>
+              <button type="button" class="tag-btn" data-value="Simulasi / Simulator">Simulasi / Simulator</button>
+              <button type="button" class="tag-btn" data-value="Presentasi">Presentasi</button>
+              <button type="button" class="tag-btn" data-value="ClassPoint">ClassPoint</button>
+            </div>
+            <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+              <input type="text" id="input-custom-metode" class="form-input" style="max-width: 250px;" placeholder="Tambah metode lain...">
+              <button type="button" class="btn btn-secondary btn-sm" id="btn-add-custom-metode">+ Tambah</button>
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label class="form-label">
+              Media Pembelajaran <span class="badge-tag">Konteks AI</span>
+            </label>
+            <div class="tag-container" id="media-tags">
+              <button type="button" class="tag-btn active" data-value="Laptop / PC">Laptop / PC</button>
+              <button type="button" class="tag-btn active" data-value="Proyektor / Smart TV">Proyektor / Smart TV</button>
+              <button type="button" class="tag-btn active" data-value="LKPD Interaktif">LKPD Interaktif</button>
+              <button type="button" class="tag-btn" data-value="Simulator (Packet Tracer / GNS3)">Simulator (Packet Tracer / GNS3)</button>
+              <button type="button" class="tag-btn" data-value="Internet / Cloud Lab">Internet / Cloud Lab</button>
+              <button type="button" class="tag-btn" data-value="ClassPoint">ClassPoint</button>
+              <button type="button" class="tag-btn" data-value="Lab Komputer">Lab Komputer</button>
+            </div>
+            <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+              <input type="text" id="input-custom-media" class="form-input" style="max-width: 250px;" placeholder="Tambah media lain...">
+              <button type="button" class="btn btn-secondary btn-sm" id="btn-add-custom-media">+ Tambah</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="select-ukrk">
+              Tingkat UKRK <span class="badge-tag">Field: «JENIS_UKRK»</span>
+            </label>
+            <select id="select-ukrk" class="form-select">
+              <option value="Tinggi" selected>Tinggi</option>
+              <option value="Sedang">Sedang</option>
+              <option value="Rendah">Rendah</option>
+            </select>
+            <span class="form-hint">Urgensi, Kontinuitas, Relevansi, Keterpakaian.</span>
+          </div>
+        </div>
+
+        <div class="wizard-footer">
+          <div></div>
+          <button type="button" class="btn btn-primary btn-next-step">
+            Lanjut ke CP & TP ➔
+          </button>
+        </div>
+      </section>
+
+      <!-- ================= STEP 2: CP & TP ================= -->
+      <section class="wizard-step-panel" data-step="2" style="display: none;">
+        <div class="section-header">
+          <h2 class="section-title"><span>🎯</span> STEP 2 — Capaian & Tujuan Pembelajaran</h2>
+          <p class="section-subtitle">Capaian Pembelajaran (CP) dan Tujuan Pembelajaran (TP) adalah Master Data resmi yang wajib diisi manual oleh guru.</p>
+        </div>
+
+        <!-- Alert Proteksi Integritas Master Data -->
+        <div class="alert-box warning">
+          <span class="alert-icon">🔒</span>
+          <div>
+            <strong>Prinsip Integritas Kurikulum:</strong>
+            <p>Sesuai aturan kurikulum, <strong>AI DILARANG membuat, mengubah, atau meringkas teks CP dan TP</strong>. Teks yang Anda masukkan di bawah ini akan digunakan secara utuh tanpa perubahan pada dokumen dan menjadi acuan utama AI dalam menyusun kegiatan pembelajaran.</p>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1.75rem;">
+          <label class="form-label" for="textarea-cp">
+            Capaian Pembelajaran (CP) 
+            <span class="badge-tag manual">Diisi Manual Guru (Field: «NARASICP_IKM_atau_KD_K13»)</span>
+          </label>
+          <textarea id="textarea-cp" class="form-textarea" placeholder="Tuliskan atau salin Capaian Pembelajaran (CP) resmi dari dokumen BSKAP..." rows="4"></textarea>
+          <span class="form-hint">Wajib diisi sebelum dokumen dapat digenerate.</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="textarea-tp">
+            Tujuan Pembelajaran (TP) 
+            <span class="badge-tag manual">Diisi Manual Guru (Field: «TUJUANPEMBELAJARAN»)</span>
+          </label>
+          <textarea id="textarea-tp" class="form-textarea" placeholder="Tuliskan Tujuan Pembelajaran (TP) yang ingin dicapai pada pertemuan ini..." rows="4"></textarea>
+          <span class="form-hint">Wajib diisi sebelum dokumen dapat digenerate.</span>
+        </div>
+
+        <div class="wizard-footer">
+          <button type="button" class="btn btn-secondary btn-prev-step">
+            ⬅ Kembali ke Identitas
+          </button>
+          <button type="button" class="btn btn-primary btn-next-step">
+            Lanjut ke Model Pembelajaran ➔
+          </button>
+        </div>
+      </section>
+
+      <!-- ================= STEP 3: MODEL PEMBELAJARAN ================= -->
+      <section class="wizard-step-panel" data-step="3" style="display: none;">
+        <div class="section-header">
+          <h2 class="section-title"><span>🧩</span> STEP 3 — Model Pembelajaran</h2>
+          <p class="section-subtitle">Pilih model pembelajaran. Sintaks kegiatan pada Step 5 akan disesuaikan secara dinamis mengikuti model yang Anda pilih.</p>
+        </div>
+
+        <div class="card-selector-grid">
+          <div class="selection-card model-selection-card selected" data-model-id="discovery_learning">
+            <div class="card-top">
+              <span class="card-badge">6 Sintaks</span>
+              <span style="color: var(--accent); font-weight: bold;">●</span>
+            </div>
+            <h3 class="card-title">Discovery Learning</h3>
+            <p class="card-desc">Sintaks: Stimulasi ➔ Identifikasi Masalah ➔ Pengumpulan Data ➔ Pengolahan Data ➔ Verifikasi ➔ Generalisasi.</p>
+          </div>
+
+          <div class="selection-card model-selection-card" data-model-id="problem_based_learning">
+            <div class="card-top">
+              <span class="card-badge">5 Sintaks</span>
+              <span style="color: var(--info); font-weight: bold;">●</span>
+            </div>
+            <h3 class="card-title">Problem Based Learning (PBL)</h3>
+            <p class="card-desc">Sintaks: Orientasi Masalah ➔ Mengorganisasi Siswa ➔ Membimbing Penyelidikan ➔ Mengembangkan Hasil ➔ Evaluasi Proses.</p>
+          </div>
+
+          <div class="selection-card model-selection-card" data-model-id="project_based_learning">
+            <div class="card-top">
+              <span class="card-badge">6 Sintaks</span>
+              <span style="color: var(--secondary-accent); font-weight: bold;">●</span>
+            </div>
+            <h3 class="card-title">Project Based Learning (PjBL)</h3>
+            <p class="card-desc">Sintaks: Pertanyaan Mendasar ➔ Desain Proyek ➔ Jadwal ➔ Monitor Kemajuan ➔ Uji Hasil ➔ Evaluasi Pengalaman.</p>
+          </div>
+
+          <div class="selection-card model-selection-card" data-model-id="inquiry_learning">
+            <div class="card-top">
+              <span class="card-badge">5 Sintaks</span>
+              <span style="color: var(--accent); font-weight: bold;">●</span>
+            </div>
+            <h3 class="card-title">Inquiry Learning</h3>
+            <p class="card-desc">Sintaks: Orientasi ➔ Hipotesis ➔ Investigasi ➔ Penjelasan ➔ Kesimpulan.</p>
+          </div>
+
+          <div class="selection-card model-selection-card" data-model-id="cooperative_learning">
+            <div class="card-top">
+              <span class="card-badge">4 Sintaks</span>
+              <span style="color: var(--info); font-weight: bold;">●</span>
+            </div>
+            <h3 class="card-title">Cooperative Learning</h3>
+            <p class="card-desc">Sintaks: Tujuan dan Tugas ➔ Kerja Kelompok ➔ Presentasi dan Diskusi ➔ Refleksi dan Evaluasi.</p>
+          </div>
+
+          <div class="selection-card model-selection-card" data-model-id="contextual_teaching_and_learning">
+            <div class="card-top">
+              <span class="card-badge">5 Sintaks</span>
+              <span style="color: var(--secondary-accent); font-weight: bold;">●</span>
+            </div>
+            <h3 class="card-title">Contextual Teaching and Learning (CTL)</h3>
+            <p class="card-desc">Sintaks: Konstruktivisme ➔ Inquiry ➔ Bertanya ➔ Masyarakat Belajar ➔ Refleksi.</p>
+          </div>
+        </div>
+
+        <div class="wizard-footer">
+          <button type="button" class="btn btn-secondary btn-prev-step">
+            ⬅ Kembali ke CP & TP
+          </button>
+          <button type="button" class="btn btn-primary btn-next-step">
+            Lanjut ke Apersepsi ➔
+          </button>
+        </div>
+      </section>
+
+      <!-- ================= STEP 4: APERSEPSI ================= -->
+      <section class="wizard-step-panel" data-step="4" style="display: none;">
+        <div class="section-header">
+          <h2 class="section-title"><span>💡</span> STEP 4 — Apersepsi Pembelajaran</h2>
+          <p class="section-subtitle">Pilih pendekatan apersepsi untuk menarik minat belajar peserta didik sebelum masuk ke kegiatan inti.</p>
+        </div>
+
+        <div class="card-selector-grid">
+          <div class="selection-card apersepsi-selection-card selected" data-type="analogi">
+            <div class="card-top">
+              <span class="card-badge">Perumpamaan Nyata</span>
+            </div>
+            <h3 class="card-title">Analogi Konseptual</h3>
+            <p class="card-desc">Menghubungkan konsep materi yang abstrak dengan perumpamaan sederhana dalam kehidupan sehari-hari.</p>
+          </div>
+
+          <div class="selection-card apersepsi-selection-card" data-type="ctl">
+            <div class="card-top">
+              <span class="card-badge">Dunia Industri</span>
+            </div>
+            <h3 class="card-title">CTL (Kontekstual / Industri)</h3>
+            <p class="card-desc">Menghubungkan materi dengan kebutuhan nyata dunia kerja dan industri (IDUKA).</p>
+          </div>
+
+          <div class="selection-card apersepsi-selection-card" data-type="review">
+            <div class="card-top">
+              <span class="card-badge">Prasyarat Belajar</span>
+            </div>
+            <h3 class="card-title">Review Materi Sebelumnya</h3>
+            <p class="card-desc">Menghubungkan materi pertemuan sebelumnya sebagai pijakan untuk materi saat ini.</p>
+          </div>
+        </div>
+
+        <!-- Input Ekstra untuk CTL / Review -->
+        <div id="apersepsi-ctl-extra" class="form-group" style="display: none; margin-bottom: 1.25rem;">
+          <label class="form-label" for="input-konteks-tambahan">
+            Konteks Tambahan (Opsional)
+          </label>
+          <input type="text" id="input-konteks-tambahan" class="form-input" placeholder="Contoh: Studi kasus instalasi jaringan pada gedung perkantoran 4 lantai">
+        </div>
+
+        <div id="apersepsi-review-extra" class="form-group" style="display: none; margin-bottom: 1.25rem;">
+          <label class="form-label" for="input-materi-sebelumnya">
+            Materi Pertemuan Sebelumnya <span class="badge-tag required">Wajib jika memilih Review</span>
+          </label>
+          <input type="text" id="input-materi-sebelumnya" class="form-input" placeholder="Contoh: Pengkabelan UTP dan Crimping RJ45">
+        </div>
+
+        <!-- Apersepsi Content Area -->
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <label class="form-label" for="textarea-apersepsi" style="margin: 0;">
+              Narasi Apersepsi <span class="badge-tag required">Field: «APERSEPSI»</span>
+            </label>
+            <button type="button" class="btn btn-ai btn-sm" id="btn-generate-apersepsi">
+              <span>✨</span> Generate Apersepsi AI
+            </button>
+          </div>
+          <textarea id="textarea-apersepsi" class="form-textarea" placeholder="Tuliskan apersepsi atau klik 'Generate Apersepsi AI'..." rows="5"></textarea>
+          <span class="form-hint">Anda dapat mengedit seluruh hasil tulisan AI sesuai kebutuhan.</span>
+        </div>
+
+        <div class="wizard-footer">
+          <button type="button" class="btn btn-secondary btn-prev-step">
+            ⬅ Kembali ke Model
+          </button>
+          <button type="button" class="btn btn-primary btn-next-step">
+            Lanjut ke Kegiatan Pembelajaran ➔
+          </button>
+        </div>
+      </section>
+
+      <!-- ================= STEP 5: KEGIATAN PEMBELAJARAN ================= -->
+      <section class="wizard-step-panel" data-step="5" style="display: none;">
+        <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <h2 class="section-title"><span>📝</span> STEP 5 — Kegiatan Pembelajaran (Inti)</h2>
+            <p class="section-subtitle">Susun kegiatan guru dan peserta didik untuk setiap sintaks model pembelajaran secara spesifik.</p>
+          </div>
+          <button type="button" class="btn btn-ai" id="btn-generate-all-steps">
+            <span>⚡</span> Generate Semua Sintaks Sekaligus
+          </button>
+        </div>
+
+        <div class="alert-box info">
+          <span class="alert-icon">ℹ️</span>
+          <div>
+            <strong>Keterangan Slot Template:</strong>
+            Sintaks di bawah ini akan secara otomatis digabungkan dan dipetakan ke dalam 3 slot field master template DOCX (<code>«LANGKAH_1»</code>, <code>«LANGKAH_2»</code>, dan <code>«LANGKAH_3»</code>).
+          </div>
+        </div>
+
+        <!-- Dynamic Syntax Cards Container -->
+        <div id="syntax-cards-container" class="syntax-container">
+          <!-- Populated dynamically by JavaScript -->
+        </div>
+
+        <div class="wizard-footer">
+          <button type="button" class="btn btn-secondary btn-prev-step">
+            ⬅ Kembali ke Apersepsi
+          </button>
+          <button type="button" class="btn btn-primary btn-next-step">
+            Lanjut ke Asesmen ➔
+          </button>
+        </div>
+      </section>
+
+      <!-- ================= STEP 6: ASESMEN ================= -->
+      <section class="wizard-step-panel" data-step="6" style="display: none;">
+        <div class="section-header">
+          <h2 class="section-title"><span>📊</span> STEP 6 — Rencana Asesmen Pembelajaran</h2>
+          <p class="section-subtitle">Tentukan instrumen dan deskripsi asesmen (Teori, Praktik, Formatif, Sumatif) yang selaras dengan Tujuan Pembelajaran.</p>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+          <label class="form-label">
+            Jenis Asesmen yang Digunakan
+          </label>
+          <div class="tag-container" id="asesmen-tags">
+            <button type="button" class="tag-btn active" data-value="Teori">Teori</button>
+            <button type="button" class="tag-btn active" data-value="Praktik / LKPD Interaktif">Praktik / LKPD Interaktif</button>
+            <button type="button" class="tag-btn active" data-value="Formatif">Formatif</button>
+            <button type="button" class="tag-btn active" data-value="Sumatif">Sumatif</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <label class="form-label" for="textarea-asesmen" style="margin: 0;">
+              Deskripsi Asesmen <span class="badge-tag">Field: «EVALUASIASSESMENT»</span>
+            </label>
+            <button type="button" class="btn btn-ai btn-sm" id="btn-generate-assessment">
+              <span>✨</span> Rekomendasikan Asesmen AI
+            </button>
+          </div>
+          <textarea id="textarea-asesmen" class="form-textarea" placeholder="Tuliskan rencana asesmen atau klik 'Rekomendasikan Asesmen AI'..." rows="4"></textarea>
+        </div>
+
+        <div class="wizard-footer">
+          <button type="button" class="btn btn-secondary btn-prev-step">
+            ⬅ Kembali ke Kegiatan
+          </button>
+          <button type="button" class="btn btn-primary btn-next-step">
+            Lanjut ke Visual Preview ➔
+          </button>
+        </div>
+      </section>
+
+      <!-- ================= STEP 7: PREVIEW ================= -->
+      <section class="wizard-step-panel" data-step="7" style="display: none;">
+        <div class="section-header">
+          <h2 class="section-title"><span>👁️</span> STEP 7 — Visual Preview Modul Ajar</h2>
+          <p class="section-subtitle">Periksa seluruh isi dokumen modul ajar sebelum digenerate ke file DOCX master template asli.</p>
+        </div>
+
+        <div id="preview-content-area">
+          <!-- Populated by preview.js -->
+        </div>
+
+        <div class="wizard-footer">
+          <button type="button" class="btn btn-secondary btn-prev-step">
+            ⬅ Kembali ke Asesmen
+          </button>
+          <button type="button" class="btn btn-primary btn-next-step">
+            Lanjut ke Export DOCX ➔
+          </button>
+        </div>
+      </section>
+
+      <!-- ================= STEP 8: EXPORT DOCX ================= -->
+      <section class="wizard-step-panel" data-step="8" style="display: none;">
+        <div class="section-header">
+          <h2 class="section-title"><span>📥</span> STEP 8 — Export Dokumen DOCX</h2>
+          <p class="section-subtitle">Sistem akan melakukan Mail Merge ke template master asli dan menghasilkan file DOCX resmi.</p>
+        </div>
+
+        <!-- Validation Summary Box -->
+        <div id="export-validation-summary" style="margin-bottom: 2rem;">
+          <!-- Populated dynamically -->
+        </div>
+
+        <!-- Master Guarantee Box -->
+        <div class="alert-box info" style="margin-bottom: 2rem;">
+          <span class="alert-icon">🛡️</span>
+          <div>
+            <strong>Jaminan Preservasi Format 100%:</strong>
+            <p>File hasil download dijamin menggunakan format, margin, tabel, logo, font, tata letak shape, dan footer dari template DOCX master asli tanpa ada perubahan layout sedikitpun.</p>
+          </div>
+        </div>
+
+        <div style="text-align: center; padding: 2rem 0;">
+          <button type="button" class="btn btn-accent btn-lg" id="btn-download-docx" style="padding: 1rem 2.5rem; font-size: 1.1rem;">
+            <span>📥</span> Download Modul Ajar (DOCX)
+          </button>
+        </div>
+
+        <!-- Catatan pengisian manual panel kiri -->
+        <div class="alert-box" style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 1rem 1.25rem; margin-top: 0.5rem; display: flex; align-items: flex-start; gap: 0.75rem;">
+          <span style="font-size: 1.25rem; flex-shrink: 0;">📝</span>
+          <div style="font-size: 0.9rem; color: #0369a1; line-height: 1.6;">
+            <strong>Catatan:</strong> Setelah download, silakan lengkapi identitas yang masih kosong pada bagian kiri dokumen menggunakan Microsoft Word. Bagian tersebut memang sengaja dikosongkan agar dapat disesuaikan langsung di Word.
+          </div>
+        </div>
+
+        <div class="wizard-footer">
+          <button type="button" class="btn btn-secondary btn-prev-step">
+            ⬅ Kembali ke Preview
+          </button>
+          <div></div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="/js/api.js"></script>
+  <script src="/js/preview.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>

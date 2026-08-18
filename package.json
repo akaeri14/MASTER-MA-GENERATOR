@@ -1,0 +1,17 @@
+{
+  "name": "ai-modul-ajar-generator",
+  "version": "1.0.0",
+  "description": "AI Modul Ajar Generator dengan integrasi Google Gemini dan Mail Merge DOCX Preservasi Master",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "pizzip": "^3.2.0"
+  }
+}
