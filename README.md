@@ -1,6 +1,6 @@
 # AI Modul Ajar Generator
 
-Aplikasi web berbasis Node.js dan Express untuk membantu guru menyusun Modul Ajar Kurikulum Merdeka secara lebih cepat, terstruktur, dan konsisten. Aplikasi ini menggabungkan asistensi AI Google Gemini untuk menghasilkan teks pembelajaran, validasi data modul ajar, serta ekspor dokumen Word DOCX dengan mekanisme Mail Merge ke template master yang sudah disiapkan.
+Aplikasi web berbasis Node.js dan Express untuk membantu guru menyusun Modul Ajar Kurikulum Merdeka secara lebih cepat, terstruktur, dan konsisten. Aplikasi ini menggabungkan asistensi AI Google Gemini, knowledge base model pembelajaran, continuity checking, validasi data, serta ekspor dokumen Word DOCX dengan mekanisme Mail Merge ke template master yang sudah disiapkan.
 
 ## Ringkasan Aplikasi
 
@@ -10,6 +10,9 @@ Dengan kata lain, aplikasi ini berfungsi sebagai:
 
 - generator modul ajar berbasis form wizard
 - asisten penulisan pembelajaran berbasis AI
+- learning designer subject-agnostic untuk berbagai mata pelajaran
+- knowledge base model pembelajaran dan sintaks
+- continuity engine dari apersepsi sampai sintaks terakhir
 - validator kelengkapan data modul ajar
 - engine ekspor dokumen DOCX dengan mail merge
 
@@ -79,6 +82,25 @@ Data form disimpan ke LocalStorage browser, sehingga pengguna tidak kehilangan d
 ### 6. Preview data modul ajar
 Sebelum export, ada stage preview yang mencerminkan informasi modul ajar yang sudah diisi dan disusun.
 
+### 7. Knowledge Base dan Continuity Engine
+Knowledge base menyimpan fungsi pedagogis, input, output, dependensi, evidence, risiko, dan pola terlarang untuk setiap sintaks. AI menggunakan data tersebut sebagai learning designer, bukan sekadar text generator.
+
+Continuity engine memastikan hubungan:
+
+```text
+Apersepsi → Sintaks 1 → Sintaks 2 → ... → Sintaks terakhir → Penutup template
+```
+
+CP dan TP tetap berasal dari guru. AI menggunakannya sebagai konteks dan melakukan pemeriksaan alignment tanpa mengubahnya.
+
+### 8. Quality Gate informatif
+Sistem memeriksa kelengkapan, continuity, alignment TP, konteks subject, keterbacaan kegiatan, dan evidence akhir. Hasilnya ditampilkan sebagai informasi/rekomendasi.
+
+Quality Gate tidak mengambil keputusan atas nama guru. Selama field wajib lengkap, guru tetap dapat mengunduh DOCX meskipun status kualitas `REVIEW` atau `FAIL`.
+
+### 9. UI minimalis
+Antarmuka menggunakan gaya minimalis terang dengan panel bersih, tipografi yang lebih ringan, responsivitas mobile, serta tetap mempertahankan seluruh wizard dan fungsi yang sudah ada.
+
 ## Arsitektur Aplikasi
 
 Aplikasi terdiri dari beberapa bagian utama:
@@ -100,8 +122,11 @@ Aplikasi terdiri dari beberapa bagian utama:
 
 - `server.js` — server utama Express
 - `config/models.config.js` — konfigurasi model pembelajaran, sintaks, dan pilihan default
+- `config/knowledge-base.js` — knowledge base pedagogis, struktur sintaks, dan registry sumber model
 - `services/gemini.service.js` — komunikasi dengan Gemini
 - `services/prompt.service.js` — penyusun prompt AI per bagian modul
+- `services/learning-design.service.js` — contract pembelajaran, continuity, alignment, dan Quality Gate
+- `services/continuity.service.js` — utilitas pemeriksaan keterhubungan kegiatan
 - `services/validation.service.js` — validasi data modul ajar
 - `services/mailmerge.service.js` — engine pengisian template DOCX
 - `public/` — antarmuka pengguna (frontend)
@@ -110,17 +135,22 @@ Aplikasi terdiri dari beberapa bagian utama:
 
 ## Model Pembelajaran yang Didukung
 
-Aplikasi sudah memiliki konfigurasi model pembelajaran yang umum dipakai, di antaranya:
+Aplikasi saat ini menampilkan model berikut pada web:
 
 - Discovery Learning
 - Problem Based Learning (PBL)
 - Project Based Learning (PjBL)
+- Inquiry Learning
+- Cooperative Learning
+- Contextual Teaching and Learning (CTL)
 
 Untuk masing-masing model ada sintaks yang berbeda dan dibagi ke slot template:
 
 - LANGKAH_1
 - LANGKAH_2
 - LANGKAH_3
+
+Knowledge base mendukung metadata pedagogis yang lebih rinci daripada tiga slot DOCX tersebut. Beberapa model/variant masih memiliki status sumber `proposed` atau `source_required` dan perlu ditetapkan rujukan definitif sebelum disebut sebagai sintaks resmi.
 
 ## API Backend
 
@@ -154,7 +184,12 @@ Membuat rekomendasi asesmen yang sesuai dengan TP dan materi.
 ### Validasi data
 - POST `/api/validate`
 
-Memeriksa apakah semua field wajib sudah lengkap.
+Memeriksa field wajib dan mengembalikan informasi Quality Gate. Status kualitas bersifat advisory; validasi field wajib tetap menjadi pemeriksaan utama sebelum ekspor.
+
+### Validasi learning design
+- POST `/api/learning-design/validate`
+
+Menghasilkan Learning Design Contract, state tiap tahap, skor transisi, continuity issue, alignment TP, dan status subject-agnostic.
 
 ### Ekspor DOCX
 - POST `/api/export/docx`
@@ -169,8 +204,9 @@ Mengekspor modul ajar ke file DOCX berdasarkan template master.
 4. User dapat menghasilkan apersepsi dan kegiatan pembelajaran secara otomatis dengan Gemini.
 5. User meninjau CP dan TP yang dimasukkan secara manual.
 6. User mengecek validasi data.
-7. User mengekspor hasilnya ke DOCX.
-8. File DOCX siap digunakan sebagai modul ajar resmi.
+7. User meninjau catatan Quality Gate dan menentukan sendiri apakah hasil sudah siap digunakan.
+8. User mengekspor hasilnya ke DOCX.
+9. File DOCX siap digunakan sebagai modul ajar resmi.
 
 ## Teknologi yang Digunakan
 
@@ -246,12 +282,17 @@ Pada `services/gemini.service.js`, sistem menggunakan beberapa model Gemini yang
 ### Keamanan template DOCX
 Untuk ekspor DOCX, aplikasi melakukan validasi struktur XML agar hasil dokumen tetap valid dan tidak rusak setelah diunduh.
 
+### Kebijakan keputusan guru
+Sistem memberikan informasi kualitas dan rekomendasi revisi. Keputusan untuk menerima, memperbaiki, atau mengunduh modul tetap berada pada guru.
+
 ## Keterbatasan
 
 - Aplikasi memerlukan koneksi internet saat menggunakan fitur AI Gemini.
 - Keberhasilan eksekusi AI tergantung pada kuota dan status layanan Google Gemini.
 - Template DOCX harus tetap tersedia di folder `template.docx`.
 - Pengguna perlu memastikan data CP dan TP benar karena isi tersebut tidak dibentuk ulang oleh AI.
+- Penyimpanan modul masih berbasis draft LocalStorage; autentikasi dan database server belum diterapkan.
+- Sumber beberapa variant model pembelajaran masih perlu disahkan secara eksplisit.
 
 ## Skenario Penggunaan
 
@@ -270,12 +311,15 @@ Aplikasi ini adalah solusi praktis untuk membantu guru menyusun Modul Ajar denga
 
 Proyek ini merupakan aplikasi lokal yang berfokus pada kepraktisan penggunaan sehari-hari, bukan framework frontend besar seperti React atau Next.js. Struktur yang dipakai masih sederhana dan mudah dikembangkan lebih lanjut bila nanti ingin ditambah:
 
-- autentikasi guru
-- database penyimpanan modul ajar
+- autentikasi dan otorisasi berbasis role admin/guru
+- database penyimpanan modul ajar dan kepemilikan modul
+- audit log aktivitas pengguna
 - export ke PDF
 - versi multi-template
 - riwayat modul ajar
 - integrasi dengan LMS atau sekolah
+
+Rencana pengembangan terperinci tersedia pada [readme3.md](readme3.md).
 
 ## Lisensi
 
