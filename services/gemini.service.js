@@ -1,78 +1,78 @@
 /**
- * services/gemini.service.js
- * Layanan komunikasi ke Google Gemini API dengan retry & model rotation
+ * Layanan komunikasi ke Google Gemini.
+ * Nama file dan kontrak generateText dipertahankan agar seluruh endpoint lama kompatibel.
  */
 
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-let genAI = null;
-
-function getGenAI() {
-  if (!genAI) {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      throw new Error('GEMINI_API_KEY tidak ditemukan di environment variables.');
-    }
-    genAI = new GoogleGenerativeAI(apiKey);
-  }
-  return genAI;
-}
-
 const CANDIDATE_MODELS = [
-  'gemini-3.5-flash',
-  'gemini-3.5-flash-lite',
+  process.env.GEMINI_MODEL,
   'gemini-3.6-flash',
+  'gemini-3.5-flash',
   'gemini-3.7-flash',
   'gemini-flash-latest'
-];
+].filter(Boolean);
+const REQUEST_TIMEOUT_MS = Number(process.env.GEMINI_TIMEOUT_MS || 45000);
+const DEFAULT_MAX_RETRIES = Number(process.env.GEMINI_MAX_RETRIES || 1);
+let genAI;
+
+function getGenAI() {
+  if (!process.env.GEMINI_API_KEY) {
+    throw new Error('GEMINI_API_KEY tidak ditemukan di environment variables.');
+  }
+  if (!genAI) genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+  return genAI;
+}
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-/**
- * Generate teks menggunakan Gemini dengan automatic retry & fallback
- */
+function withTimeout(promise, timeoutMs) {
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`Timeout Gemini setelah ${timeoutMs} ms.`)), timeoutMs);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
+function isRetryable(error) {
+  const message = String(error?.message || '').toLowerCase();
+  return message.includes('429') || message.includes('503') || message.includes('500') ||
+    message.includes('timeout') || message.includes('fetch failed') || message.includes('temporarily');
+}
+
 async function generateText(prompt, systemInstruction = '', maxRetries = 2) {
   const ai = getGenAI();
+  const retries = Math.max(0, Math.min(Number(maxRetries) || DEFAULT_MAX_RETRIES, DEFAULT_MAX_RETRIES));
   let lastError = null;
 
-  for (const modelName of CANDIDATE_MODELS) {
-    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+  for (const modelName of [...new Set(CANDIDATE_MODELS)]) {
+    for (let attempt = 0; attempt <= retries; attempt++) {
       try {
         const model = ai.getGenerativeModel({
           model: modelName,
-          systemInstruction: systemInstruction || 'Anda adalah asisten pedagogik ahli kurikulum dan perancangan Modul Ajar SMK/SMA di Indonesia.'
+          systemInstruction: systemInstruction || 'Anda adalah perancang pembelajaran profesional yang subject-agnostic.'
         });
-
-        const result = await model.generateContent({
+        const result = await withTimeout(model.generateContent({
           contents: [{ role: 'user', parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 1024,
-          }
-        });
-
-        const response = await result.response;
-        const text = response.text();
+          // 1024 token terlalu mudah memotong keluaran kegiatan/asesmen.
+          // Beri ruang cukup agar kalimat selesai, sementara prompt tetap membatasi panjangnya.
+          generationConfig: { temperature: 0.55, maxOutputTokens: 4096 }
+        }), REQUEST_TIMEOUT_MS);
+        const text = (await result.response).text();
+        if (!text?.trim()) throw new Error('Gemini mengembalikan respons kosong.');
         return text.trim();
       } catch (error) {
         lastError = error;
-        // Jika kena 429 Too Many Requests (Rate limit), tunggu sebentar
-        if (error.message && error.message.includes('429')) {
-          console.warn(`[Rate Limit 429] pada model ${modelName}, menunggu 2.5 detik sebelum coba lagi...`);
-          await sleep(2500);
-        } else {
-          // Jika error 404 / 503, langsung ganti model
-          break;
-        }
+        if (!isRetryable(error) || attempt >= retries) break;
+        console.warn(`[Gemini] ${modelName} gagal; retry ${attempt + 1}/${retries}.`);
+        await sleep(1000);
       }
     }
   }
 
-  throw new Error(`Gagal menghasilkan konten dari AI: ${lastError ? lastError.message : 'Semua model sedang sibuk'}`);
+  throw new Error(`Gagal menghasilkan konten dari Gemini: ${lastError?.message || 'Semua model tidak tersedia.'}`);
 }
 
-module.exports = {
-  generateText
-};
+module.exports = { generateText };

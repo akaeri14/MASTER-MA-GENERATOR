@@ -123,7 +123,7 @@ Aplikasi terdiri dari beberapa bagian utama:
 - `server.js` — server utama Express
 - `config/models.config.js` — konfigurasi model pembelajaran, sintaks, dan pilihan default
 - `config/knowledge-base.js` — knowledge base pedagogis, struktur sintaks, dan registry sumber model
-- `services/gemini.service.js` — komunikasi dengan Gemini
+- `services/gemini.service.js` — komunikasi dengan Google Gemini
 - `services/prompt.service.js` — penyusun prompt AI per bagian modul
 - `services/learning-design.service.js` — contract pembelajaran, continuity, alignment, dan Quality Gate
 - `services/continuity.service.js` — utilitas pemeriksaan keterhubungan kegiatan
@@ -201,7 +201,7 @@ Mengekspor modul ajar ke file DOCX berdasarkan template master.
 1. User membuka aplikasi di browser.
 2. User mengisi data identitas dan pembelajaran.
 3. User memilih model pembelajaran serta tipe apersepsi.
-4. User dapat menghasilkan apersepsi dan kegiatan pembelajaran secara otomatis dengan Gemini.
+4. User dapat menghasilkan apersepsi dan kegiatan pembelajaran secara otomatis dengan Google Gemini.
 5. User meninjau CP dan TP yang dimasukkan secara manual.
 6. User mengecek validasi data.
 7. User meninjau catatan Quality Gate dan menentukan sendiri apakah hasil sudah siap digunakan.
@@ -240,11 +240,12 @@ npm install
 File `.env` digunakan untuk menyimpan konfigurasi local. Contoh isinya:
 
 ```env
-GEMINI_API_KEY=your_api_key_here
+GEMINI_API_KEY=your_gemini_api_key
+GEMINI_MODEL=gemini-3.6-flash
 PORT=3000
 ```
 
-> Pastikan API key Google Gemini valid agar fitur AI dapat berjalan.
+> Pastikan API key Google Gemini valid agar fitur AI dapat berjalan. Simpan key hanya di `.env` dan jangan commit file tersebut.
 
 ## Menjalankan Aplikasi
 
@@ -277,7 +278,7 @@ Aplikasi secara sengaja membedakan antara:
 Tujuannya adalah agar kurikulum tetap valid, tidak terdistorsi, dan tetap sesuai dengan dokumen resmi yang dimiliki guru.
 
 ### Keamanan dan reliabilitas Google Gemini
-Pada `services/gemini.service.js`, sistem menggunakan beberapa model Gemini yang dipilih secara berurutan untuk mengurangi kegagalan karena rate limit atau model yang tidak tersedia. Ada juga mekanisme retry sederhana dan fallback antar model.
+Pada `services/gemini.service.js`, sistem menggunakan model Gemini yang dapat dikonfigurasi melalui `GEMINI_MODEL`, dengan fallback model, timeout, dan retry terbatas.
 
 ### Keamanan template DOCX
 Untuk ekspor DOCX, aplikasi melakukan validasi struktur XML agar hasil dokumen tetap valid dan tidak rusak setelah diunduh.

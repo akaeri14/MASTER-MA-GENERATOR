@@ -3,10 +3,12 @@
  * Backend Express Server untuk AI Modul Ajar Generator
  */
 
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
+// Kompatibilitas saat key lama masih berada satu tingkat di atas folder aplikasi.
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
 
 const {
   LEARNING_MODELS,
